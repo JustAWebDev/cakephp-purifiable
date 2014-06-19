@@ -19,8 +19,8 @@ class PurifiableBehavior extends ModelBehavior {
  * @see Model::$alias
  */
 	public $_settings = array(
-		'fields' => array(),
-		'overwrite' => false,
+		'exclude' => array(),
+		'overwrite' => true,
 		'affix' => '_clean',
 		'affix_position' => 'suffix',
 		'config' => array(
@@ -65,20 +65,20 @@ class PurifiableBehavior extends ModelBehavior {
  * @access public
  */
 	public function beforeSave(Model $model) {
-		foreach($this->settings[$model->alias]['fields'] as $fieldName) {
-			if (!isset($model->data[$model->alias][$fieldName]) or empty($model->data[$model->alias][$fieldName])) {
+		foreach($model->data[$model->alias] as $key => $val) {
+			if (in_array($key, $this->settings[$model->alias]['exclude'])) {
 				continue;
 			}
 
 			if ($this->settings[$model->alias]['overwrite']) {
-				$model->data[$model->alias][$fieldName] = $this->clean($model, $model->data[$model->alias][$fieldName]);
+				$model->data[$model->alias][$key] = $this->clean($model, $model->data[$model->alias][$key]);
 			} else {
 				$affix = $this->settings[$model->alias]['affix'];
-				$affixedFieldName = "{$fieldName}{$affix}";
+				$affixedFieldName = "{$key}{$affix}";
 				if ($this->settings[$model->alias]['affix_position'] == 'prefix') {
-					$affixedFieldName = "{$affix}{$fieldName}";
+					$affixedFieldName = "{$affix}{$key}";
 				}
-				$model->data[$model->alias][$affixedFieldName] = $this->clean($model, $model->data[$model->alias][$fieldName]);
+				$model->data[$model->alias][$affixedFieldName] = $this->clean($model, $model->data[$model->alias][$key]);
 			}
 		}
 		return true;
